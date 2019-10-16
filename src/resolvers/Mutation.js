@@ -102,7 +102,7 @@ const Mutations = {
       info
     );
     //3. Check if the user has permissions to do this
-    hasPermissions(currentUser, ["ADMIN", "PERMISSIONUPDATE"]);
+    hasPermission(currentUser, ["ADMIN", "PERMISSIONUPDATE"]);
     //4. Update the permissions
     return context.db.mutation.updateUser(
       {
