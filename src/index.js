@@ -14,13 +14,21 @@ server.express.use(cookieParser());
 // decode JWT so we ccsn get the user Id on each request
 server.express.use((req, res, next) => {
   const { token } = req.cookies;
-  console.log("cadenas");
-  console.log(req.cookies);
-  console.log(token);
   if (token) {
     const { userId } = jwt.verify(token, process.env.APP_SECRET);
     req.userId = userId;
   }
+  next();
+});
+// Create middleware that populates the user on each request
+
+server.express.use(async (req, res, next) => {
+  if (!req.userId) return next();
+  const user = await db.query.user(
+    { where: { id: req.userId } },
+    "{id, permissions, email, name}"
+  );
+  req.user = user;
   next();
 });
 
