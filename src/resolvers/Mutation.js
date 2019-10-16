@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { hasPermission } = require("../utils/utils");
 
 const Mutations = {
   async createItem(parent, args, context, info) {
@@ -87,6 +88,35 @@ const Mutations = {
   signOut(parent, args, context, info) {
     context.response.clearCookie("token");
     return { message: "Goodbye!" };
+  },
+  async updatePermissions(parent, args, context, info) {
+    //1. Check if the user is logged in
+    if (!context.request.userId) {
+      throw new Error(`You must be logged in!`);
+    }
+    //2. Query the current user
+    const currentUser = await context.db.query.user(
+      {
+        where: { id: context.request.userId }
+      },
+      info
+    );
+    //3. Check if the user has permissions to do this
+    hasPermissions(currentUser, ["ADMIN", "PERMISSIONUPDATE"]);
+    //4. Update the permissions
+    return context.db.mutation.updateUser(
+      {
+        data: {
+          permissions: {
+            set: args.permissions
+          }
+        },
+        where: {
+          id: args.userId
+        }
+      },
+      info
+    );
   }
 };
 
